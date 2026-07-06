@@ -65,6 +65,33 @@ export default function RegisterPage() {
               />
             </div>
 
+            <fieldset>
+              <legend className="block text-sm font-medium text-gray-700">
+                Sos...
+              </legend>
+              <div className="mt-1 grid grid-cols-2 gap-2">
+                <label className="flex cursor-pointer items-center justify-center gap-2 rounded-md border border-gray-300 px-3 py-2 text-sm has-[:checked]:border-gray-900 has-[:checked]:bg-gray-900 has-[:checked]:text-white">
+                  <input
+                    type="radio"
+                    name="role"
+                    value="STUDENT"
+                    defaultChecked
+                    className="sr-only"
+                  />
+                  Alumno
+                </label>
+                <label className="flex cursor-pointer items-center justify-center gap-2 rounded-md border border-gray-300 px-3 py-2 text-sm has-[:checked]:border-gray-900 has-[:checked]:bg-gray-900 has-[:checked]:text-white">
+                  <input
+                    type="radio"
+                    name="role"
+                    value="PROFESSOR"
+                    className="sr-only"
+                  />
+                  Profesor
+                </label>
+              </div>
+            </fieldset>
+
             {state?.error && (
               <p className="text-sm text-red-600">{state.error}</p>
             )}

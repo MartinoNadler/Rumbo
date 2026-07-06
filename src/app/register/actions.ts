@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
+import { Role } from "@prisma/client";
 
 export type RegisterState = { error?: string; message?: string } | undefined;
 
@@ -13,9 +14,14 @@ export async function register(
   const name = (formData.get("name") as string)?.trim();
   const email = (formData.get("email") as string)?.trim();
   const password = formData.get("password") as string;
+  const role = formData.get("role") as string;
 
   if (!name || !email || !password) {
     return { error: "Completá todos los campos." };
+  }
+
+  if (role !== "PROFESSOR" && role !== "STUDENT") {
+    return { error: "Elegí si sos profesor o alumno." };
   }
 
   if (password.length < 8) {
@@ -34,7 +40,7 @@ export async function register(
   }
 
   await prisma.user.create({
-    data: { id: data.user.id, email, name },
+    data: { id: data.user.id, email, name, role: role as Role },
   });
 
   if (!data.session) {

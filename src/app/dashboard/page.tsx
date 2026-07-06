@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { logout } from "@/lib/auth-actions";
+import { getMembership } from "@/lib/groups";
 import {
   getActivities,
   getActivityTypes,
@@ -28,6 +29,17 @@ export default async function DashboardPage({
     redirect("/login");
   }
 
+  const dbUser = await prisma.user.findUnique({ where: { id: user.id } });
+
+  if (dbUser?.role === "PROFESSOR") {
+    redirect("/group");
+  }
+
+  const membership = await getMembership(user.id);
+  if (!membership) {
+    redirect("/groups/join");
+  }
+
   const params = await searchParams;
   const filters: ActivityFilters = {
     from: typeof params.from === "string" ? params.from : undefined,
@@ -36,8 +48,7 @@ export default async function DashboardPage({
     source: typeof params.source === "string" ? params.source : undefined,
   };
 
-  const [dbUser, summary, weeklyVolume, activityTypes, activities] = await Promise.all([
-    prisma.user.findUnique({ where: { id: user.id } }),
+  const [summary, weeklyVolume, activityTypes, activities] = await Promise.all([
     getDashboardSummary(user.id),
     getWeeklyVolume(user.id),
     getActivityTypes(user.id),
@@ -51,7 +62,7 @@ export default async function DashboardPage({
       <div className="mx-auto max-w-3xl space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-semibold text-gray-900">
-            Hola, {dbUser?.name ?? user.email}
+            Hola, {dbUser?.nickname ?? dbUser?.name ?? user.email}
           </h1>
           <form action={logout}>
             <button
