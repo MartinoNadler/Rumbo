@@ -83,8 +83,19 @@ CREATE OR REPLACE FUNCTION app_has_group_access(target_group_id text) RETURNS bo
   );
 $$;
 
--- Do the current user and target_user_id share any group (either as
--- classmates, or professor <-> own student)?
+-- Is target_user_id the professor of a group the current user belongs to?
+CREATE OR REPLACE FUNCTION app_is_my_professor(target_user_id text) RETURNS boolean
+  LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM "Membership" m
+    JOIN "Group" g ON g.id = m."groupId"
+    WHERE m."userId" = app_current_user_id() AND g."professorId" = target_user_id
+  );
+$$;
+
+-- Do the current user and target_user_id share any group, in any direction
+-- (classmates, professor -> own student, or student -> own professor)?
 CREATE OR REPLACE FUNCTION app_shares_group_with(target_user_id text) RETURNS boolean
   LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
   SELECT EXISTS (
@@ -92,11 +103,12 @@ CREATE OR REPLACE FUNCTION app_shares_group_with(target_user_id text) RETURNS bo
     FROM "Membership" m1
     JOIN "Membership" m2 ON m1."groupId" = m2."groupId"
     WHERE m1."userId" = app_current_user_id() AND m2."userId" = target_user_id
-  ) OR app_is_professor_of(target_user_id);
+  ) OR app_is_professor_of(target_user_id) OR app_is_my_professor(target_user_id);
 $$;
 
 GRANT EXECUTE ON FUNCTION app_current_user_id() TO app_user;
 GRANT EXECUTE ON FUNCTION app_current_role() TO app_user;
+GRANT EXECUTE ON FUNCTION app_is_my_professor(text) TO app_user;
 GRANT EXECUTE ON FUNCTION app_is_professor_of(text) TO app_user;
 GRANT EXECUTE ON FUNCTION app_has_group_access(text) TO app_user;
 GRANT EXECUTE ON FUNCTION app_shares_group_with(text) TO app_user;
@@ -134,10 +146,13 @@ CREATE POLICY user_update ON "User" FOR UPDATE USING (
   id = app_current_user_id()
 );
 
--- Group: professors manage groups they own; students read groups they're in.
+-- Group: readable by any signed-in user (needed so a student can look up a
+-- group by invite code before becoming a member to join it). Group has no
+-- sensitive columns beyond the invite code itself, which is meant to be
+-- shared for exactly this purpose. Writes stay restricted to the owner.
 DROP POLICY IF EXISTS group_select ON "Group";
 CREATE POLICY group_select ON "Group" FOR SELECT USING (
-  "professorId" = app_current_user_id() OR app_has_group_access(id)
+  app_current_user_id() IS NOT NULL
 );
 
 DROP POLICY IF EXISTS group_write ON "Group";
@@ -147,10 +162,15 @@ CREATE POLICY group_write ON "Group" FOR ALL USING (
   "professorId" = app_current_user_id()
 );
 
--- Membership: visible to the member and the group's professor.
+-- Membership: visible to anyone with access to that group (classmates, and
+-- the owning professor), plus always your own row. The own-row clause is
+-- required, not just an optimization: Prisma's create() does an INSERT ...
+-- RETURNING, and at that instant app_has_group_access() can't see the row
+-- being inserted yet (it queries the table fresh), so without this the
+-- INSERT itself would fail as an RLS violation.
 DROP POLICY IF EXISTS membership_select ON "Membership";
 CREATE POLICY membership_select ON "Membership" FOR SELECT USING (
-  "userId" = app_current_user_id() OR app_is_professor_of("userId")
+  "userId" = app_current_user_id() OR app_has_group_access("groupId")
 );
 
 DROP POLICY IF EXISTS membership_insert ON "Membership";
