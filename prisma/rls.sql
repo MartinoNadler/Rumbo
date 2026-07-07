@@ -49,9 +49,9 @@ ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public
 --    that checking group membership never gets tangled in the RLS policies
 --    of the tables they query) -------------------------------------------
 
-CREATE OR REPLACE FUNCTION app_current_user_id() RETURNS uuid
+CREATE OR REPLACE FUNCTION app_current_user_id() RETURNS text
   LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
-  SELECT NULLIF(current_setting('app.current_user_id', true), '')::uuid;
+  SELECT NULLIF(current_setting('app.current_user_id', true), '');
 $$;
 
 CREATE OR REPLACE FUNCTION app_current_role() RETURNS text
@@ -60,7 +60,7 @@ CREATE OR REPLACE FUNCTION app_current_role() RETURNS text
 $$;
 
 -- Is the current user the professor who owns target_user_id's group?
-CREATE OR REPLACE FUNCTION app_is_professor_of(target_user_id uuid) RETURNS boolean
+CREATE OR REPLACE FUNCTION app_is_professor_of(target_user_id text) RETURNS boolean
   LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
   SELECT EXISTS (
     SELECT 1
@@ -72,7 +72,7 @@ CREATE OR REPLACE FUNCTION app_is_professor_of(target_user_id uuid) RETURNS bool
 $$;
 
 -- Does the current user belong to (as student or owning professor) target_group_id?
-CREATE OR REPLACE FUNCTION app_has_group_access(target_group_id uuid) RETURNS boolean
+CREATE OR REPLACE FUNCTION app_has_group_access(target_group_id text) RETURNS boolean
   LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
   SELECT EXISTS (
     SELECT 1 FROM "Group" g
@@ -85,7 +85,7 @@ $$;
 
 -- Do the current user and target_user_id share any group (either as
 -- classmates, or professor <-> own student)?
-CREATE OR REPLACE FUNCTION app_shares_group_with(target_user_id uuid) RETURNS boolean
+CREATE OR REPLACE FUNCTION app_shares_group_with(target_user_id text) RETURNS boolean
   LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
   SELECT EXISTS (
     SELECT 1
@@ -97,9 +97,9 @@ $$;
 
 GRANT EXECUTE ON FUNCTION app_current_user_id() TO app_user;
 GRANT EXECUTE ON FUNCTION app_current_role() TO app_user;
-GRANT EXECUTE ON FUNCTION app_is_professor_of(uuid) TO app_user;
-GRANT EXECUTE ON FUNCTION app_has_group_access(uuid) TO app_user;
-GRANT EXECUTE ON FUNCTION app_shares_group_with(uuid) TO app_user;
+GRANT EXECUTE ON FUNCTION app_is_professor_of(text) TO app_user;
+GRANT EXECUTE ON FUNCTION app_has_group_access(text) TO app_user;
+GRANT EXECUTE ON FUNCTION app_shares_group_with(text) TO app_user;
 
 -- 3) Enable RLS ---------------------------------------------------------
 
