@@ -26,3 +26,8 @@ next-env.d.ts
 
 # vercel
 .vercel
+
+# personal test fixtures (may contain real GPS/location data)
+*.gpx
+*.fit
+*.tcx

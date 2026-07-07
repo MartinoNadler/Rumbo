@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { Plus, Upload } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { requireRole } from "@/lib/nav-guard";
 import { getRecentActivities } from "@/lib/activities/list";
@@ -21,10 +21,16 @@ export default async function HoyPage() {
           <h1 className="text-2xl font-semibold tracking-tight">Hoy</h1>
           <p className="text-muted-foreground">Todavía no hay entrenamientos planificados.</p>
         </div>
-        <Link href="/activities/new" className={cn(buttonVariants())}>
-          <Plus className="size-4" />
-          Cargar actividad
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/activities/import" className={cn(buttonVariants({ variant: "outline" }))}>
+            <Upload className="size-4" />
+            Importar archivo
+          </Link>
+          <Link href="/activities/new" className={cn(buttonVariants())}>
+            <Plus className="size-4" />
+            Cargar actividad
+          </Link>
+        </div>
       </div>
 
       <div className="flex flex-col gap-3">
