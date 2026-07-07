@@ -31,3 +31,35 @@ export async function assignWorkout(professor: CurrentUser, input: AssignWorkout
     })
   );
 }
+
+export type PlanEntry = {
+  date: Date;
+  type: string;
+  intensity?: string | null;
+  targetDistanceMeters?: number | null;
+  targetDurationSec?: number | null;
+};
+
+export async function assignPlan(
+  professor: CurrentUser,
+  groupId: string,
+  studentIds: string[],
+  entries: PlanEntry[]
+) {
+  return withUserContext(professor.id, professor.role, (tx) =>
+    tx.plannedWorkout.createMany({
+      data: entries.flatMap((entry) =>
+        studentIds.map((studentId) => ({
+          groupId,
+          studentId,
+          assignedById: professor.id,
+          date: entry.date,
+          type: entry.type,
+          intensity: entry.intensity ?? null,
+          targetDistanceMeters: entry.targetDistanceMeters ?? null,
+          targetDurationSec: entry.targetDurationSec ?? null,
+        }))
+      ),
+    })
+  );
+}

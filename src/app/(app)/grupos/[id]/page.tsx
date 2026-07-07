@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, X } from "lucide-react";
+import { ArrowLeft, CalendarRange, X } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { requireRole } from "@/lib/nav-guard";
 import { getGroupDetailForProfessor } from "@/lib/groups/list";
 import { formatDate } from "@/lib/format";
 import { Card, CardContent } from "@/components/ui/card";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { removeMemberAction } from "./actions";
 import { AssignWorkoutForm } from "./assign-workout-form";
 
@@ -28,10 +30,18 @@ export default async function GroupDetailPage({
           <ArrowLeft className="size-4" />
           Grupos
         </Link>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight">{group.name}</h1>
-        <p className="text-muted-foreground">
-          Código de invitación: <span className="font-mono">{group.inviteCode}</span>
-        </p>
+        <div className="mt-2 flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight">{group.name}</h1>
+            <p className="text-muted-foreground">
+              Código de invitación: <span className="font-mono">{group.inviteCode}</span>
+            </p>
+          </div>
+          <Link href={`/grupos/${group.id}/plan`} className={cn(buttonVariants({ variant: "outline" }))}>
+            <CalendarRange className="size-4" />
+            Planificar semana/mes
+          </Link>
+        </div>
       </div>
 
       <div className="flex flex-col gap-3">
