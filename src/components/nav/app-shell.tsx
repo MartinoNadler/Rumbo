@@ -2,22 +2,24 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { Role } from "@prisma/client";
 import { LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { logout } from "@/lib/auth-actions";
-import type { NavItem } from "@/components/nav/nav-items";
+import { NAV_ITEMS, type NavItem } from "@/components/nav/nav-items";
 
 export function AppShell({
-  navItems,
+  role,
   userName,
   children,
 }: {
-  navItems: NavItem[];
+  role: Role;
   userName: string;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const navItems = NAV_ITEMS[role];
 
   return (
     <div className="flex min-h-dvh flex-col md:flex-row">

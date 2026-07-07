@@ -1,6 +1,5 @@
 import { requireUser } from "@/lib/auth";
 import { AppShell } from "@/components/nav/app-shell";
-import { NAV_ITEMS } from "@/components/nav/nav-items";
 
 export default async function AppLayout({
   children,
@@ -10,7 +9,7 @@ export default async function AppLayout({
   const user = await requireUser();
 
   return (
-    <AppShell navItems={NAV_ITEMS[user.role]} userName={user.name}>
+    <AppShell role={user.role} userName={user.name}>
       {children}
     </AppShell>
   );
