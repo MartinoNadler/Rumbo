@@ -7,6 +7,7 @@ import { getGroupDetailForProfessor } from "@/lib/groups/list";
 import { formatDate } from "@/lib/format";
 import { Card, CardContent } from "@/components/ui/card";
 import { removeMemberAction } from "./actions";
+import { AssignWorkoutForm } from "./assign-workout-form";
 
 export default async function GroupDetailPage({
   params,
@@ -67,6 +68,17 @@ export default async function GroupDetailPage({
           ))
         )}
       </div>
+
+      {group.memberships.length > 0 && (
+        <AssignWorkoutForm
+          groupId={group.id}
+          students={group.memberships.map((m) => ({
+            membershipId: m.id,
+            userId: m.user.id,
+            name: m.user.name,
+          }))}
+        />
+      )}
     </div>
   );
 }

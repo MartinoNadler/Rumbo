@@ -197,6 +197,15 @@ CREATE POLICY planned_workout_write ON "PlannedWorkout" FOR ALL USING (
   "assignedById" = app_current_user_id() AND app_is_professor_of("studentId")
 );
 
+-- Separate from the professor's write policy: the student may update their
+-- own workout (used to mark it as done/skipped from the app).
+DROP POLICY IF EXISTS planned_workout_student_update ON "PlannedWorkout";
+CREATE POLICY planned_workout_student_update ON "PlannedWorkout" FOR UPDATE USING (
+  "studentId" = app_current_user_id()
+) WITH CHECK (
+  "studentId" = app_current_user_id()
+);
+
 -- Activity: strictly private to its owner, except professors get read-only
 -- access to their own students' activities.
 DROP POLICY IF EXISTS activity_select ON "Activity";

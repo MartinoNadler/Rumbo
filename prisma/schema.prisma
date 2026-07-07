@@ -29,6 +29,12 @@ enum Role {
   STUDENT
 }
 
+enum WorkoutStatus {
+  PENDING
+  DONE
+  SKIPPED
+}
+
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
@@ -86,9 +92,12 @@ model PlannedWorkout {
   assignedBy           User      @relation("AssignedByProfessor", fields: [assignedById], references: [id], onDelete: Cascade)
   date                 DateTime
   type                 String
+  goal                 String?
   description          String?
+  intensity            String?
   targetDistanceMeters Float?
   targetDurationSec    Int?
+  status               WorkoutStatus @default(PENDING)
   createdAt            DateTime  @default(now())
 
   @@index([studentId, date])
